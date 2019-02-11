@@ -1,8 +1,12 @@
 # BaxterObjectSorting
 Object Sorting with Baxter
 
+Dependencies: ROS Kinetic, Eigen3
+
 
 To install:
+
+install eigen library from http://eigen.tuxfamily.org/index.php?title=Main_Page#Download
 
 sudo apt-get install gazebo7 ros-kinetic-qt-build ros-kinetic-gazebo-ros-control ros-kinetic-gazebo-ros-pkgs ros-kinetic-ros-control ros-kinetic-control-toolbox ros-kinetic-realtime-tools ros-kinetic-ros-controllers ros-kinetic-xacro python-wstool ros-kinetic-tf-conversions ros-kinetic-kdl-parser
 
