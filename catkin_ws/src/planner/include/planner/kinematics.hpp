@@ -16,11 +16,10 @@ public:
     std::vector<geometry_msgs::Point> getCartesianPositions(const std::vector<double> &angles);
 
 private:
-
     void createTransforms(const std::vector<double> &angles);
     void updateTransforms(const std::vector<double> &angles);
-    const std::vector<Eigen::Matrix4d> getJointTransforms();
-    const geometry_msgs::Point extractPointFromTf(const Eigen::Matrix4d &tf);
+    const std::vector<Eigen::Matrix4d> getJointTransforms() const;
+    const geometry_msgs::Point extractPointFromTf(const Eigen::Matrix4d &tf) const;
     void createT01(const double &angle);
     void createT12(const double &angle);
     void createT23(const double &angle);
@@ -51,8 +50,6 @@ private:
     const double &l4 = 0.37429;
     const double &l5 = 0.00100;
     const double &l6 = 0.38735;
-
-
 };
 
 }
