@@ -10,7 +10,6 @@ Kinematics::Kinematics(const std::vector<double> &angles)
 
 Kinematics::~Kinematics(){}
 
-
 void Kinematics::createTransforms(const std::vector<double> &angles)
 {
     createT01(angles[0]);
@@ -45,7 +44,7 @@ void Kinematics::updateTransforms(const std::vector<double> &angles)
     updateT67(angles[6]);
 }
 
-const std::vector<Eigen::Matrix4d> Kinematics::getJointTransforms()
+const std::vector<Eigen::Matrix4d> Kinematics::getJointTransforms() const
 {
     std::vector<Eigen::Matrix4d> tfs;
     const Eigen::Matrix4d &t02 = t01 * t12;
@@ -64,7 +63,7 @@ const std::vector<Eigen::Matrix4d> Kinematics::getJointTransforms()
     return tfs;
 }
 
-const geometry_msgs::Point Kinematics::extractPointFromTf(const Eigen::Matrix4d &tf)
+const geometry_msgs::Point Kinematics::extractPointFromTf(const Eigen::Matrix4d &tf) const
 {
     geometry_msgs::Point pt;
     pt.x = tf(0, 3);
@@ -214,24 +213,13 @@ void Kinematics::createT67(const double &angle)
     t67(3, 3) = 1;
 }
 
+
 void Kinematics::updateT01(const double &angle)
 {
     t01(0, 0) = cos(angle);
     t01(0, 1) = -sin(angle);
-    t01(0, 2) = 0;
-    t01(0, 3) = 0;
     t01(1, 0) = sin(angle);
     t01(1, 1) = cos(angle);
-    t01(1, 2) = 0;
-    t01(1, 3) = 0;
-    t01(2, 0) = 0;
-    t01(2, 1) = 0;
-    t01(2, 2) = 1;
-    t01(2, 3) = 0;
-    t01(3, 0) = 0;
-    t01(3, 1) = 0;
-    t01(3, 2) = 0;
-    t01(3, 3) = 1;
 }
 
 void Kinematics::updateT12(const double &angle)
