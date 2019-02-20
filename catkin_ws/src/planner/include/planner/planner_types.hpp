@@ -7,17 +7,19 @@ template <typename Object>
 
 struct Point
 {
-    Point(const Object &x_, const Object &y_) :
+    Point(const Object &x_, const Object &y_, const Object &z_) :
         x(x_),
-        y(y_)
+        y(y_),
+        z(z_)
         {}
     ~Point() = default;
       bool operator==(const Point<Object> &rhs) const
       {
-          return (rhs.x == x && rhs.y == y);
+          return (rhs.x == x && rhs.y == y && rhs.z == z);
       }
       Object x;
       Object y;
+      Object z;
 };
 
 struct ArmState
