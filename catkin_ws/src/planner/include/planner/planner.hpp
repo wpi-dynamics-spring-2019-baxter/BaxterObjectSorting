@@ -24,7 +24,15 @@ public:
 private:
     bool planRequestCallback(planner::PlanTrajectory::Request &req, planner::PlanTrajectory::Response &res);
     void jointStateCallback(const sensor_msgs::JointState::ConstPtr &msg);
+    void getParams(ros::NodeHandle &pnh);
     moveit_msgs::RobotTrajectory planTrajectory(const std::string &arm);
+    void expandFrontier(const GraphNode &node);
+    const std::vector<double> calcPossibleVelocities(const ArmState &state, const int &joint_id);
+    const std::vector<double> calcPossibleAngles(const ArmState &state, const std::vector<double> &velocities, const int &joint_id);
+    const bool checkForGoal(const GraphNode &node);
+    void openNode(const GraphNode &node);
+    void closeNode(const GraphNode &node);
+    const ArmState getCurrentState(const std::string &arm);
     const Spline1d calcSpline(const int &joint_id, const double &joint_angle) const;
     const double calcTimeToGoal(const int &joint_id, const double &joint_angle) const;
 
@@ -33,31 +41,24 @@ private:
     ros::Subscriber m_joint_state_sub;    
 
     std::priority_queue<GraphNode, std::vector<GraphNode>, GraphNode::CheaperCost> m_frontier;
+    std::vector<GraphNode> m_open_nodes;
+    std::vector<GraphNode> m_closed_nodes;
     Kinematics *m_fkin;
     sensor_msgs::JointState::ConstPtr m_joint_states;
 
 
-    sensor_msgs::JointState m_goal_state;
+    ArmState *m_goal_state;
 
     //params
     double m_max_angular_velocity_shoulder;
     double m_max_angular_velocity_elbow;
     double m_max_angular_velocity_wrist;
-    double m_th1_min;
-    double m_th2_min;
-    double m_th3_min;
-    double m_th4_min;
-    double m_th5_min;
-    double m_th6_min;
-    double m_th7_min;
-    double m_th1_max;
-    double m_th2_max;
-    double m_th3_max;
-    double m_th4_max;
-    double m_th5_max;
-    double m_th6_max;
-    double m_th7_max;
-    double m_spline_order;
+    std::vector<double> m_angle_mins;
+    std::vector<double> m_angle_maxes;
+    double m_time_step_ms;
+    double m_velocity_res;
+    double m_max_angular_accel;
+    int m_spline_order;
 
 
 };
