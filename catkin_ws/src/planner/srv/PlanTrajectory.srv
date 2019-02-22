@@ -1,0 +1,6 @@
+sensor_msgs/JointState goal_pose
+string arm
+
+---
+
+moveit_msgs/RobotTrajectory traj

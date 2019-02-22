@@ -1,0 +1,21 @@
+table_clearance_height: 0.2
+
+max_angular_velocity_shoulder: 2.0
+max_angular_velocity_elbow: 2.0
+max_angular_velocity_wrist: 4.0
+
+th1_min: 0.890118
+th2_min: 1.047200
+th3_min: 3.019420
+th4_min: 2.617990
+th5_min: 3.054330
+th6_min: 2.094400
+th7_min: 3.054330
+
+th1_max: -2.460910
+th2_max: -2.146750
+th3_max: -3.019420
+th4_max: -0.052360
+th5_max: -3.054330
+th6_max: -1.570800
+th7_max: -3.054330
