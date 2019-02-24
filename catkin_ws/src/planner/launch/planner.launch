@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <node name="planner_node" pkg="planner" type="planner_node" output="screen">
+        <rosparam command="load" file="$(find planner)/param/planner_params.yaml"/>
+    </node>
+</launch>

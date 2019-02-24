@@ -6,7 +6,7 @@ namespace Baxter
 
 Planner::Planner(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
-    m_planner_server = nh.advertiseService("plan_trajectory", &Planner::planRequestCallback, this);
+    m_planner_server = nh.advertiseService("/plan_trajectory", &Planner::planRequestCallback, this);
     m_joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/robot/joint_states", 10, &Planner::jointStateCallback, this);
     getParams(pnh);
 
@@ -21,7 +21,8 @@ Planner::~Planner()
 void Planner::getParams(ros::NodeHandle &pnh)
 {
     m_angle_mins.resize(7);
-    pnh.getParam("th1_min", m_angle_mins[0]);
+    m_angle_maxes.resize(7);
+    pnh.getParam("th1_min", m_angle_mins[0]);    
     pnh.getParam("th2_min", m_angle_mins[1]);
     pnh.getParam("th3_min", m_angle_mins[2]);
     pnh.getParam("th4_min", m_angle_mins[3]);
@@ -35,6 +36,13 @@ void Planner::getParams(ros::NodeHandle &pnh)
     pnh.getParam("th5_max", m_angle_maxes[4]);
     pnh.getParam("th6_max", m_angle_maxes[5]);
     pnh.getParam("th7_max", m_angle_maxes[6]);
+    pnh.getParam("time_step_ms", m_time_step_ms);
+    pnh.getParam("velocity_res", m_velocity_res);
+    pnh.getParam("max_angular_accel", m_max_angular_accel);
+    pnh.getParam("spline_order", m_spline_order);
+    pnh.getParam("max_angular_velocity_shoulder", m_max_angular_velocity_shoulder);
+    pnh.getParam("max_angular_velocity_eblow", m_max_angular_velocity_elbow);
+    pnh.getParam("max_angular_velocity_wrist", m_max_angular_velocity_wrist);
 }
 
 moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
@@ -44,10 +52,14 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
     openNode(current_node);
     while(true)
     {
-        const GraphNode &current_node = m_frontier.top();
+        ROS_INFO_STREAM("open nodes: " << m_open_nodes.size() << " closed nodes: " << m_closed_nodes.size() << " frontier size: " << m_frontier.size());
+        const GraphNode current_node = m_frontier.top();
+        m_frontier.pop();
+        closeNode(current_node);
         if(checkForGoal(current_node))
         {
-
+            ROS_INFO_STREAM("path found");
+            break;
         }
         expandFrontier(current_node);
 
@@ -56,15 +68,41 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
 
 void Planner::expandFrontier(const GraphNode &current_node)
 {
+    const std::vector<GraphNode> &neighbors = getNeighbors(current_node);
+    for(const auto &neighbor : neighbors)
+    {
+        const std::vector<GraphNode>::iterator &it_closed = std::find(m_closed_nodes.begin(), m_closed_nodes.end(), neighbor);
+        if(it_closed != m_closed_nodes.end())
+        {
+           continue;
+        }
+        const std::vector<GraphNode>::iterator &it_open = std::find(m_open_nodes.begin(), m_open_nodes.end(), neighbor);
+        if(it_open != m_open_nodes.end())
+        {
+            if(neighbor.cost >= (*it_open).cost)
+            {
+                continue;
+            }
+        }
+        else
+        {
+            openNode(neighbor);
+        }
+    }
+}
+
+const std::vector<GraphNode> Planner::getNeighbors(const GraphNode &current_node)
+{
+    std::vector<GraphNode> neighbors = {};
     std::vector<std::vector<double>> possible_velocities;
     std::vector<std::vector<double>> possible_angles;
     std::vector<Spline1d> splines;
-    for(int joint_id = 0; joint_id < 6; joint_id++)
+    for(int joint_id = 0; joint_id < 7; joint_id++)
     {
         possible_velocities.push_back(calcPossibleVelocities(current_node.current_state, joint_id));
         possible_angles.push_back(calcPossibleAngles(current_node.current_state, possible_velocities[joint_id], joint_id));
         splines.push_back(calcSpline(joint_id, current_node.current_state.positions[joint_id], current_node.time_from_start));
-    }    
+    }
     int vel1_it = 0;
     for(const auto &angle1 : possible_angles[0])
     {
@@ -97,7 +135,7 @@ void Planner::expandFrontier(const GraphNode &current_node)
                                 const double &h = calcH(state, splines, current_node.time_from_start);
                                 const double &cost = g + h;
                                 GraphNode new_node(state, current_node.current_state, time_from_start, g, cost);
-                                openNode(new_node);
+                                neighbors.push_back(new_node);
                                 vel7_it++;
                             }
                             vel6_it++;
@@ -112,6 +150,7 @@ void Planner::expandFrontier(const GraphNode &current_node)
         }
         vel1_it++;
     }
+    return neighbors;
 }
 
 const double Planner::calcG(const ArmState &state, const GraphNode &parent_node)
@@ -129,7 +168,7 @@ const double Planner::calcH(const ArmState &state, const std::vector<Spline1d> &
 {
     double position_heuristic = 0;
     double velocity_heuristic = 0;
-    for(int joint_id = 0; joint_id < 6; joint_id++)
+    for(int joint_id = 0; joint_id < 7; joint_id++)
     {
         const Spline1d &target_spline = splines[joint_id];
         const double &target_angle = calcTargetJointAngle(target_spline, start_time);
@@ -178,9 +217,9 @@ const std::vector<double> Planner::calcPossibleVelocities(const ArmState &state,
     const double &min_vel = current_velocity - m_max_angular_accel * m_time_step_ms / 1000;
     const double &vel_range = fabs(max_vel - min_vel);
     const int &num_possible_velocities = int(vel_range / m_velocity_res);
-    for(int i = 1; i < num_possible_velocities; i++)
+    for(int i = 0; i < num_possible_velocities; i++)
     {
-        double velocity = min_vel + i / num_possible_velocities * vel_range;
+        double velocity = min_vel + double(i) / double(num_possible_velocities) * vel_range;
         double max_vel_;
         if(joint_id < 2)
         {
@@ -239,8 +278,9 @@ void Planner::openNode(const GraphNode &node)
 
 void Planner::closeNode(const GraphNode &node)
 {
-    std::vector<GraphNode>::iterator it = std::find(m_closed_nodes.begin(), m_closed_nodes.end(), node);
-    m_closed_nodes.erase(it);
+    std::vector<GraphNode>::iterator it = std::find(m_open_nodes.begin(), m_open_nodes.end(), node);
+    m_open_nodes.erase(it);
+    m_closed_nodes.push_back(node);
 }
 
 const ArmState Planner::getCurrentState(const std::string &arm)
@@ -249,7 +289,7 @@ const ArmState Planner::getCurrentState(const std::string &arm)
     std::vector<double> velocities;
     if(arm == "left")
     {
-        for(int i = 0; i < 6; i++)
+        for(int i = 0; i < 7; i++)
         {
             positions.push_back(m_joint_states->position[i + 3]);
             velocities.push_back(m_joint_states->velocity[i + 3]);
@@ -257,7 +297,7 @@ const ArmState Planner::getCurrentState(const std::string &arm)
     }
     if(arm == "right")
     {
-        for(int i = 0; i < 6; i++)
+        for(int i = 0; i < 7; i++)
         {
             positions.push_back(m_joint_states->position[i + 12]);
             velocities.push_back(m_joint_states->velocity[i + 12]);
@@ -304,7 +344,7 @@ bool Planner::planRequestCallback(planner::PlanTrajectory::Request &req, planner
 {
     std::vector<double> positions;
     std::vector<double> velocities;
-    for(int i = 0; i < 6; i++)
+    for(int i = 0; i < 7; i++)
     {
         positions.push_back(req.goal_pose.position[i]);
         positions.push_back(req.goal_pose.velocity[i]);

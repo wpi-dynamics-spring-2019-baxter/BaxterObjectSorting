@@ -27,6 +27,7 @@ private:
     void getParams(ros::NodeHandle &pnh);
     moveit_msgs::RobotTrajectory planTrajectory(const std::string &arm);
     void expandFrontier(const GraphNode &node);
+    const std::vector<GraphNode> getNeighbors(const GraphNode &current_node);
     const double calcG(const ArmState &state, const GraphNode &parent_node);
     const double calcH(const ArmState &state, const std::vector<Spline1d> &splines, const double &start_time);
     const double calcTargetJointAngle(const Spline1d &spline, const double &start_time);
