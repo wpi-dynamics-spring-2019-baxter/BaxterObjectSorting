@@ -27,13 +27,16 @@ private:
     void getParams(ros::NodeHandle &pnh);
     moveit_msgs::RobotTrajectory planTrajectory(const std::string &arm);
     void expandFrontier(const GraphNode &node);
+    const double calcG(const ArmState &state, const GraphNode &parent_node);
+    const double calcH(const ArmState &state, const std::vector<Spline1d> &splines, const double &start_time);
+    const double calcTargetJointAngle(const Spline1d &spline, const double &start_time);
     const std::vector<double> calcPossibleVelocities(const ArmState &state, const int &joint_id);
     const std::vector<double> calcPossibleAngles(const ArmState &state, const std::vector<double> &velocities, const int &joint_id);
     const bool checkForGoal(const GraphNode &node);
     void openNode(const GraphNode &node);
     void closeNode(const GraphNode &node);
     const ArmState getCurrentState(const std::string &arm);
-    const Spline1d calcSpline(const int &joint_id, const double &joint_angle) const;
+    const Spline1d calcSpline(const int &joint_id, const double &joint_angle, const double &start_time) const;
     const double calcTimeToGoal(const int &joint_id, const double &joint_angle) const;
 
 
