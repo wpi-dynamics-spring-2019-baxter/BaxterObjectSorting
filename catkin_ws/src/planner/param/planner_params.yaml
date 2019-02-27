@@ -1,8 +1,8 @@
 table_clearance_height: 0.2
 
-time_step_ms: 150
+time_step_ms: 100
 velocity_res: 0.1
-max_angular_accel: 2
+max_angular_accel: 0.5
 spline_order: 3
 spline_search_res: .1
 

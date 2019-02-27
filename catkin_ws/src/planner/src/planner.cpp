@@ -193,13 +193,15 @@ const double Planner::calcG(const ArmState &state, const GraphNode &parent_node)
 const double Planner::calcH(const ArmState &state, const std::vector<double> &target_angles, const std::vector<double> &target_velocities)
 {
     double position_heuristic = 0;
-    double velocity_heuristic = 0;
+    double position_spline_heuristic = 0;
+    double velocity_spline_heuristic = 0;
     for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
     {
-        position_heuristic += fabs(target_angles[joint_id] - state.positions[joint_id]) * 100;
-        velocity_heuristic += fabs(state.velocities[joint_id] - target_velocities[joint_id]) * 100;
+        position_heuristic += fabs(m_goal_state->positions[joint_id] - state.positions[joint_id])  / (2 * M_PI) * 100;
+        position_spline_heuristic += fabs(target_angles[joint_id] - state.positions[joint_id]) / (2 * M_PI )* 100;
+        velocity_spline_heuristic += fabs(state.velocities[joint_id] - target_velocities[joint_id]) * 100;
     }
-    return position_heuristic + velocity_heuristic;
+    return position_heuristic + position_spline_heuristic + velocity_spline_heuristic;
 }
 
 void Planner::calcTargetStates(const Spline1d &spline, const double& start_time, double &angle, double &velocity) const
@@ -220,6 +222,13 @@ void Planner::calcTargetStates(const Spline1d &spline, const double& start_time,
         spline_time = spline_pt(0);
         th = spline_pt(1);
         spline_value += spline_res;
+    }
+    if(spline_value > 1)
+    {
+        const Eigen::MatrixXd &spline_pt = spline(spline_value);
+        th = spline_pt(1);
+        velocity = 0;
+        return;
     }
     const Eigen::MatrixXd &spline_pt_v = spline(spline_value);
     const double &spline_time_v = spline_pt_v(0);
