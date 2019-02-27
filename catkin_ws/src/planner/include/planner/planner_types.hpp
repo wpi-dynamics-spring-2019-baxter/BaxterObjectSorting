@@ -24,15 +24,12 @@ struct Point
 
 struct ArmState
 {
-    ArmState(const std::vector<double> &positions_, const std::vector<double> &velocities_) :
-        positions(positions_),
-        velocities(velocities_)
-        {}
+    ArmState(const std::vector<double> &positions_) : positions(positions_){}
     bool operator==(const ArmState &rhs) const
     {
         for(int i = 0; i < positions.size(); i++)
         {
-            if(rhs.positions[i] != positions[i] || rhs.velocities[i] != velocities[i])
+            if(rhs.positions[i] != positions[i])
             {
                 return false;
             }
@@ -40,15 +37,13 @@ struct ArmState
         return true;
     }
     std::vector<double> positions;
-    std::vector<double> velocities;
 };
 
 struct GraphNode
 {
-    GraphNode(const ArmState &current_state_, const ArmState &parent_state_, const double &time_from_start_, const double &g_, const double &cost_) :
+    GraphNode(const ArmState &current_state_, const ArmState &parent_state_, const double &g_, const double &cost_) :
         current_state(current_state_),
         parent_state(parent_state_),
-        time_from_start(time_from_start_),
         g(g_),
         cost(cost_)
         {}
@@ -56,7 +51,6 @@ struct GraphNode
 
     ArmState current_state;
     ArmState parent_state;
-    double time_from_start;
     double g;
     double cost;
 
