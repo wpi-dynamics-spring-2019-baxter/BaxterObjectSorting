@@ -257,7 +257,7 @@ const moveit_msgs::RobotTrajectory Planner::reconstructTrajectory()
 const std::vector<ArmState> Planner::reverseStates(const std::vector<ArmState> &reverse_states)
 {
     std::vector<ArmState> states;
-    for(int state = reverse_states.size(); state > 0; state--)
+    for(int state = reverse_states.size() - 1; state >= 0; state--)
     {
         states.push_back(reverse_states[state]);
     }
