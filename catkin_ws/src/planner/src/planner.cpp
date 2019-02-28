@@ -48,22 +48,21 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
 {
 
     const ArmState start_state = getCurrentState(arm);
-    GraphNode current_node(start_state, start_state, 0, std::numeric_limits<double>::infinity());
-    const GraphNode &start_node = current_node;
+    GraphNode current_node(m_graph_id, m_graph_id, start_state, 0, std::numeric_limits<double>::infinity());
+    m_graph_id++;
     openNode(current_node);
     ros::Time start_time = ros::Time::now();
     ros::Duration dur;
     while(true)
     {
         dur = ros::Time::now() - start_time;
-        current_node = m_frontier.top();
-        ArmState current_state_ = current_node.current_state;
-        m_frontier.pop();
+        current_node = m_frontier.top();        
         if(checkForGoal(current_node))
         {
             ROS_INFO_STREAM("path found in " << dur.toSec() << " seconds");
-            //return reconstructTrajectory(current_node, start_node);
+            return reconstructTrajectory();
         }
+        m_frontier.pop();
         expandFrontier(current_node);
         closeNode(current_node);
     }
@@ -125,10 +124,15 @@ const std::vector<GraphNode> Planner::getNeighbors(const GraphNode &current_node
                             {
                                 std::vector<double> positions{angle1, angle2, angle3, angle4, angle5, angle6, angle7};
                                 const ArmState state(positions);
+                                if(state == current_node.current_state)
+                                {
+                                    continue;
+                                }
                                 const double &g = calcG(state, current_node);
                                 const double &h = calcH(state);
                                 const double &cost = g + h;
-                                GraphNode new_node(state, current_node.current_state, g, g + cost);
+                                GraphNode new_node(m_graph_id, current_node.id, state, g, g + cost);
+                                m_graph_id++;
                                 neighbors.push_back(new_node);
                                 vel7_it++;
                             }
@@ -193,6 +197,7 @@ void Planner::openNode(const GraphNode &node)
 {
     m_frontier.push(node);
     m_open_nodes.push_back(node);
+    m_nodes.insert(std::make_pair(node.id, node));
 }
 
 void Planner::closeNode(const GraphNode &node)
@@ -222,69 +227,30 @@ const ArmState Planner::getCurrentState(const std::string &arm)
     return ArmState(positions);
 }
 
-const moveit_msgs::RobotTrajectory Planner::reconstructTrajectory(const GraphNode &current_node_, const GraphNode &start_node)
+const moveit_msgs::RobotTrajectory Planner::reconstructTrajectory()
 {
-    moveit_msgs::RobotTrajectory reverse_traj;
-    GraphNode current_node = current_node_;
-    ArmState current_state = current_node.current_state;
-    int traj_it = 0;
-    while(current_node != start_node)
-    {
-        const std::vector<GraphNode>::iterator &it_open = std::find(m_open_nodes.begin(), m_open_nodes.end(), current_node);
-        if(it_open != m_open_nodes.end())
-        {
-            reverse_traj.joint_trajectory.points.push_back({});
-            for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
-            {
-                reverse_traj.joint_trajectory.points[traj_it].positions.push_back(it_open->current_state.positions[joint_id]);
-            }
-            traj_it++;
-            for(const auto &node : m_open_nodes)
-            {
-                if(current_node.parent_state == node.current_state)
-                {
-                    current_node = node;
-                    break;
-                }
-            }
-            continue;
-        }
-        const std::vector<GraphNode>::iterator &it_closed = std::find(m_closed_nodes.begin(), m_closed_nodes.end(), current_node);
-        if(it_closed != m_closed_nodes.end())
-        {
-            reverse_traj.joint_trajectory.points.push_back({});
-            for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
-            {
-                reverse_traj.joint_trajectory.points[traj_it].positions.push_back(it_closed->current_state.positions[joint_id]);
-            }
-            traj_it++;
-            for(const auto &node : m_closed_nodes)
-            {
-                if(current_node.parent_state == node.current_state)
-                {
-                    current_node = node;
-                    break;
-                }
-            }
-        }
-    }
-    return reverseTrajectory(reverse_traj);
-}
-
-const moveit_msgs::RobotTrajectory Planner::reverseTrajectory(const moveit_msgs::RobotTrajectory &reverse_traj)
-{
-    moveit_msgs::RobotTrajectory traj;
-    traj.joint_trajectory.header.stamp = ros::Time::now();
-    traj.joint_trajectory.points.resize(reverse_traj.joint_trajectory.points.size());
-    for(int i = reverse_traj.joint_trajectory.points[0].positions.size() - 1; i > 0; i--)
+    std::vector<ArmState> reverse_states;
+    GraphNode current_node = m_frontier.top();
+    while(current_node.id != 0)
     {
         for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
         {
-            traj.joint_trajectory.points[i].positions.push_back(reverse_traj.joint_trajectory.points[i].positions[joint_id]);
-            traj.joint_trajectory.points[i].time_from_start = ros::Duration(i * m_angular_joint_res / m_angular_velocity);
+            reverse_states.push_back(current_node.current_state);
         }
+        current_node = m_nodes[current_node.parent_id];
     }
-    return traj;
+    std::vector<ArmState> states =  reverseStates(reverse_states);
+
+}
+
+const std::vector<ArmState> Planner::reverseStates(const std::vector<ArmState> &reverse_states)
+{
+    std::vector<ArmState> states;
+    for(int state = reverse_states.size() - 1; state > 0; state--)
+    {
+        states.push_back(reverse_states[state]);
+    }
+    return states;
 }
 
 const Spline1d Planner::calcSpline(const int &joint_id, const double &joint_angle, const double &joint_vel, const double &start_time) const

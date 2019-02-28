@@ -7,6 +7,7 @@
 #include <planner_types.hpp>
 #include <queue>
 #include <sensor_msgs/JointState.h>
+#include <unordered_map>
 #include <unsupported/Eigen/Splines>
 
 namespace Baxter
@@ -36,8 +37,8 @@ private:
     void openNode(const GraphNode &node);
     void closeNode(const GraphNode &node);
     const ArmState getCurrentState(const std::string &arm);
-    const moveit_msgs::RobotTrajectory reconstructTrajectory(const GraphNode &current_node_, const GraphNode &start_node);
-    const moveit_msgs::RobotTrajectory reverseTrajectory(const moveit_msgs::RobotTrajectory &reverse_traj);
+    const moveit_msgs::RobotTrajectory reconstructTrajectory();
+    const std::vector<ArmState> reverseStates(const std::vector<ArmState> &reverse_states);
     const Spline1d calcSpline(const int &joint_id, const double &joint_angle, const double &joint_vel, const double &start_time) const;
 
 
@@ -46,6 +47,7 @@ private:
     ros::Publisher m_spline_pub;
 
     std::priority_queue<GraphNode, std::vector<GraphNode>, GraphNode::CheaperCost> m_frontier;
+    std::unordered_map<int, GraphNode> m_nodes;
     std::vector<GraphNode> m_open_nodes;
     std::vector<GraphNode> m_closed_nodes;
     Kinematics *m_fkin;
@@ -64,6 +66,8 @@ private:
     double m_pos_error_tol;
 
     int m_num_joints = 7;
+    int m_graph_id = 0;
+
 
 
 };
