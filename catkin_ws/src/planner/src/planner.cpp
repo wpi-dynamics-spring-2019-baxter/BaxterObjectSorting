@@ -40,7 +40,7 @@ void Planner::getParams(ros::NodeHandle &pnh)
     pnh.getParam("angular_joint_res", m_angular_joint_res);
     pnh.getParam("angular_joint_velocity", m_angular_velocity);
     pnh.getParam("spline_order", m_spline_order);
-    pnh.getParam("spline_search_res", m_spline_search_res);
+    pnh.getParam("spline_res", m_spline_res);
     pnh.getParam("pos_error_tol", m_pos_error_tol);
 }
 
@@ -59,7 +59,7 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
         current_node = m_frontier.top();        
         if(checkForGoal(current_node))
         {
-            ROS_INFO_STREAM("path found in " << dur.toSec() << " seconds");
+            ROS_INFO_STREAM("Trajectory for " << arm << " Arm Found in " << dur.toSec() << " seconds");
             return reconstructTrajectory();
         }
         m_frontier.pop();
@@ -233,29 +233,104 @@ const moveit_msgs::RobotTrajectory Planner::reconstructTrajectory()
     GraphNode current_node = m_frontier.top();
     while(current_node.id != 0)
     {
-        for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
-        {
-            reverse_states.push_back(current_node.current_state);
-        }
+        reverse_states.push_back(current_node.current_state);
         current_node = m_nodes[current_node.parent_id];
     }
-    std::vector<ArmState> states =  reverseStates(reverse_states);
-
+    std::vector<ArmState> states = reverseStates(reverse_states);
+    std::vector<std::vector<double>> joint_angles;
+    joint_angles.resize(m_num_joints);
+    std::vector<Spline1d> splines;
+    for(const auto &state : states)
+    {
+        for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
+        {
+            joint_angles[joint_id].push_back(state.positions[joint_id]);
+        }
+    }
+    for(const auto &joint : joint_angles)
+    {
+        splines.push_back(calcSpline(joint));
+    }
+    return trajFromSplines(splines);
 }
 
 const std::vector<ArmState> Planner::reverseStates(const std::vector<ArmState> &reverse_states)
 {
     std::vector<ArmState> states;
-    for(int state = reverse_states.size() - 1; state > 0; state--)
+    for(int state = reverse_states.size(); state > 0; state--)
     {
         states.push_back(reverse_states[state]);
     }
     return states;
 }
 
-const Spline1d Planner::calcSpline(const int &joint_id, const double &joint_angle, const double &joint_vel, const double &start_time) const
+const moveit_msgs::RobotTrajectory Planner::trajFromSplines(const std::vector<Spline1d> &splines)
 {
+    moveit_msgs::RobotTrajectory traj;
+    traj.joint_trajectory.header.stamp = ros::Time::now();
+    std::vector<std::vector<double>> points;
+    std::vector<double> times;
+    double spline_it = 0;
+    while(spline_it < 1)
+    {
+        std::vector<double> angles;
+        Eigen::MatrixXd spline_pt;
+        for(const auto spline : splines)
+        {
+            spline_pt = spline(spline_it);
+            angles.push_back(spline_pt(1));
+        }
+        points.push_back(angles);
+        times.push_back(spline_pt(0));
+        spline_it += m_spline_res;
+    }
+    traj.joint_trajectory.points.resize(points.size());
+    for(int point_it = 0; point_it < points.size(); point_it++)
+    {
+        for(const auto &angle : points[point_it])
+        {
+            traj.joint_trajectory.points[point_it].positions.push_back(angle);
+        }
+        traj.joint_trajectory.points[point_it].time_from_start = ros::Duration(times[point_it]);
+    }
+    return traj;
+}
 
+const Spline1d Planner::calcSpline(const std::vector<double> &angles)
+{
+    Eigen::MatrixXd points(2, angles.size());
+    for(int angle_it = 0; angle_it < angles.size(); angle_it++)
+    {
+        points(1, angle_it) = angles[angle_it];
+    }
+    for(int time_it = 0; time_it < angles.size(); time_it++)
+    {
+        points(0, time_it) = time_it * m_angular_joint_res / m_angular_velocity;
+    }
+    const Spline1d &spline = Spline1dFitting::Interpolate(points, m_spline_order);
+    pubSpline(spline);
+    ros::Duration(1).sleep();
+    return spline;
+}
+
+void Planner::pubSpline(const Spline1d &spline)
+{
+    double it =0;
+    double rez = 0.01;
+    nav_msgs::Path path;
+    path.header.frame_id = "base";
+    while(it < 1)
+    {
+        const Eigen::MatrixXd &spline_pt = spline(it);
+        const double &x = spline_pt(0);
+        const double &y = spline_pt(1);
+        it += rez;
+        geometry_msgs::PoseStamped pose;
+        pose.pose.position.x = x;
+        pose.pose.position.y = y;
+        path.poses.push_back(pose);
+    }
+    m_spline_pub.publish(path);
 }
 
 bool Planner::planRequestCallback(planner::PlanTrajectory::Request &req, planner::PlanTrajectory::Response &res)

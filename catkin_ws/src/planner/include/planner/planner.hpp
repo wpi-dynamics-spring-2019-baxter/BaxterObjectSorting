@@ -39,7 +39,9 @@ private:
     const ArmState getCurrentState(const std::string &arm);
     const moveit_msgs::RobotTrajectory reconstructTrajectory();
     const std::vector<ArmState> reverseStates(const std::vector<ArmState> &reverse_states);
-    const Spline1d calcSpline(const int &joint_id, const double &joint_angle, const double &joint_vel, const double &start_time) const;
+    const moveit_msgs::RobotTrajectory trajFromSplines(const std::vector<Spline1d> &splines);
+    const Spline1d calcSpline(const std::vector<double> &angles);
+    void pubSpline(const Spline1d &spline);
 
 
     ros::ServiceServer m_planner_server;
@@ -62,7 +64,7 @@ private:
     double m_angular_joint_res;
     double m_angular_velocity;
     int m_spline_order;
-    double m_spline_search_res;
+    double m_spline_res;
     double m_pos_error_tol;
 
     int m_num_joints = 7;
