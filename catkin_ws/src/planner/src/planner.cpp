@@ -261,6 +261,7 @@ const std::vector<ArmState> Planner::reverseStates(const std::vector<ArmState> &
     {
         states.push_back(reverse_states[state]);
     }
+    states.push_back(*m_goal_state);
     return states;
 }
 
@@ -271,7 +272,7 @@ const moveit_msgs::RobotTrajectory Planner::trajFromSplines(const std::vector<Sp
     std::vector<std::vector<double>> points;
     std::vector<double> times;
     double spline_it = 0;
-    while(spline_it < 1)
+    while(spline_it <= 1)
     {
         std::vector<double> angles;
         Eigen::MatrixXd spline_pt;
