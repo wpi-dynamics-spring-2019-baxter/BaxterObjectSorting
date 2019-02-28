@@ -36,8 +36,9 @@ private:
     void openNode(const GraphNode &node);
     void closeNode(const GraphNode &node);
     const ArmState getCurrentState(const std::string &arm);
+    const moveit_msgs::RobotTrajectory reconstructTrajectory(const GraphNode &current_node_, const GraphNode &start_node);
+    const moveit_msgs::RobotTrajectory reverseTrajectory(const moveit_msgs::RobotTrajectory &reverse_traj);
     const Spline1d calcSpline(const int &joint_id, const double &joint_angle, const double &joint_vel, const double &start_time) const;
-    void pubSpline(const Spline1d &spline);
 
 
     ros::ServiceServer m_planner_server;
@@ -57,6 +58,7 @@ private:
     std::vector<double> m_angle_mins;
     std::vector<double> m_angle_maxes;
     double m_angular_joint_res;
+    double m_angular_velocity;
     int m_spline_order;
     double m_spline_search_res;
     double m_pos_error_tol;

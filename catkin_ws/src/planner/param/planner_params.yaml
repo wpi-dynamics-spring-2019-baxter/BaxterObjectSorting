@@ -1,11 +1,11 @@
 table_clearance_height: 0.2
 
 
-angular_joint_res: 0.05
+angular_joint_res: 0.1
+angular_joint_velocity: 0.5
+pos_error_tol: 0.2
 spline_order: 3
 spline_search_res: .001
-
-pos_error_tol: 0.05
 
 th1_max: 0.890118
 th2_max: 1.047200

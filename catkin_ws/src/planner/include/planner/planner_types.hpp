@@ -36,6 +36,17 @@ struct ArmState
         }
         return true;
     }
+    bool operator!=(const ArmState &rhs) const
+    {
+        for(int i = 0; i < positions.size(); i++)
+        {
+            if(rhs.positions[i] != positions[i])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     std::vector<double> positions;
 };
 
@@ -58,6 +69,11 @@ struct GraphNode
     {
         return (rhs.current_state == current_state) &&
                (rhs.parent_state == parent_state);
+    }
+    bool operator!=(const GraphNode &rhs) const
+    {
+        return (rhs.current_state != current_state) &&
+               (rhs.parent_state != parent_state);
     }
     struct CheaperCost
     {
