@@ -1,3 +1,4 @@
 moveit_msgs/RobotTrajectory right_trajectory
 moveit_msgs/RobotTrajectory left_trajectory
+
 ---

@@ -37,17 +37,19 @@ bool Controller::executeTrajectories(const moveit_msgs::RobotTrajectory &right_t
     baxter_core_msgs::JointCommand left_command;
     right_command.mode = baxter_core_msgs::JointCommand::POSITION_MODE;
     left_command.mode = baxter_core_msgs::JointCommand::POSITION_MODE;
-    while(right_it <= num_right_points && left_it <= num_left_points)
+    while(right_it < num_right_points || left_it < num_left_points)
     {
         for(int joint_id = 0; joint_id < m_num_joints; joint_id++)
         {
             if(have_right)
             {
                 right_command.command.push_back(right_traj.joint_trajectory.points[right_it].positions[joint_id]);
+                right_command.names.push_back(right_traj.joint_trajectory.joint_names[joint_id]);
             }
             if(have_left)
             {
                 left_command.command.push_back(right_traj.joint_trajectory.points[left_it].positions[joint_id]);
+                left_command.names.push_back(left_traj.joint_trajectory.joint_names[joint_id]);
             }
         }
         const ros::Duration time_from_start = ros::Time::now() - start_time;
@@ -67,8 +69,16 @@ bool Controller::executeTrajectories(const moveit_msgs::RobotTrajectory &right_t
                 left_it++;
             }
         }
+        publishControls(right_command, left_command);
+        rate.sleep();
     }
-    rate.sleep();
+    return true;
+}
+
+void Controller::publishControls(const baxter_core_msgs::JointCommand &right, const baxter_core_msgs::JointCommand &left)
+{
+    m_right_controller_pub.publish(right);
+    m_left_controller_pub.publish(left);
 }
 
 bool Controller::executeTrajectoryRequestCallback(controller::ExecuteTrajectory::Request &req, controller::ExecuteTrajectory::Response &res)
