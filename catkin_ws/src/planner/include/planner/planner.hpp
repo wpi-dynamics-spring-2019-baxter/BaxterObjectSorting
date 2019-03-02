@@ -9,6 +9,8 @@
 #include <sensor_msgs/JointState.h>
 #include <unordered_map>
 #include <unsupported/Eigen/Splines>
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
 
 namespace Baxter
 {
@@ -27,6 +29,7 @@ private:
     bool planRequestCallback(planner::PlanTrajectory::Request &req, planner::PlanTrajectory::Response &res);
     void jointStateCallback(const sensor_msgs::JointState::ConstPtr &msg);
     void getParams(ros::NodeHandle &pnh);
+    void initializePlanner();
     moveit_msgs::RobotTrajectory planTrajectory(const std::string &arm);
     void expandFrontier(const GraphNode &node);
     const std::vector<GraphNode> getNeighbors(const GraphNode &current_node);
@@ -41,18 +44,16 @@ private:
     const std::vector<ArmState> reverseStates(const std::vector<ArmState> &reverse_states);
     const moveit_msgs::RobotTrajectory trajFromSplines(const std::vector<Spline1d> &splines);
     const Spline1d calcSpline(const std::vector<double> &angles);
-    void pubSpline(const Spline1d &spline);
-
 
     ros::ServiceServer m_planner_server;
     ros::Subscriber m_joint_state_sub;
-    ros::Publisher m_spline_pub;
 
     std::priority_queue<GraphNode, std::vector<GraphNode>, GraphNode::CheaperCost> m_frontier;
     std::unordered_map<int, GraphNode> m_nodes;
     std::vector<GraphNode> m_open_nodes;
     std::vector<GraphNode> m_closed_nodes;
     Kinematics *m_fkin;
+    std::vector<std::string> m_joint_names;
     sensor_msgs::JointState::ConstPtr m_joint_states;
 
 

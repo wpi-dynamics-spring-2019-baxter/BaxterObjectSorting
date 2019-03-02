@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   roscpp
   sensor_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,7 +109,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include/planner
 #  LIBRARIES planner
-  CATKIN_DEPENDS geometry_msgs message_generation moveit_msgs roscpp sensor_msgs
+  CATKIN_DEPENDS geometry_msgs message_generation moveit_msgs roscpp sensor_msgs tf
 #  DEPENDS system_lib
 )
 

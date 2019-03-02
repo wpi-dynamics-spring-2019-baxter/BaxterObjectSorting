@@ -8,9 +8,7 @@ Planner::Planner(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
     m_planner_server = nh.advertiseService("/plan_trajectory", &Planner::planRequestCallback, this);
     m_joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/robot/joint_states", 10, &Planner::jointStateCallback, this);
-    m_spline_pub = nh.advertise<nav_msgs::Path>("/spline_viz", 10);
     getParams(pnh);
-
 }
 
 Planner::~Planner()
@@ -44,10 +42,27 @@ void Planner::getParams(ros::NodeHandle &pnh)
     pnh.getParam("pos_error_tol", m_pos_error_tol);
 }
 
+void Planner::initializePlanner()
+{
+    m_frontier = std::priority_queue<GraphNode, std::vector<GraphNode>, GraphNode::CheaperCost>();
+    m_nodes.clear();
+    m_open_nodes.clear();
+    m_closed_nodes.clear();
+    m_joint_names.clear();
+}
+
 moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
 {
-
+    initializePlanner();
     const ArmState start_state = getCurrentState(arm);
+    m_fkin = new Kinematics(start_state);
+//    tf::TransformListener list;
+//    tf::StampedTransform trans;
+//    ros::Duration(5).sleep();
+//    list.lookupTransform("left_arm_mount", "l_gripper_l_finger_tip", ros::Time(0), trans);
+//    ROS_INFO_STREAM(trans.getOrigin().getX() << " " << trans.getOrigin().getY() << " " << trans.getOrigin().getZ());
+//    auto transforms = m_fkin->getCartesianPositions(start_state);
+//    ROS_INFO_STREAM(transforms.back().x << " " << transforms.back().y << " " << transforms.back().z);
     GraphNode current_node(m_graph_id, m_graph_id, start_state, 0, std::numeric_limits<double>::infinity());
     m_graph_id++;
     openNode(current_node);
@@ -215,6 +230,7 @@ const ArmState Planner::getCurrentState(const std::string &arm)
         for(int i = 0; i < m_num_joints; i++)
         {
             positions.push_back(m_joint_states->position[i + 3]);
+            m_joint_names.push_back(m_joint_states->name[i + 3]);
         }
     }
     if(arm == "right")
@@ -222,8 +238,19 @@ const ArmState Planner::getCurrentState(const std::string &arm)
         for(int i = 0; i < m_num_joints; i++)
         {
             positions.push_back(m_joint_states->position[i + 12]);
+            m_joint_names.push_back(m_joint_states->name[i + 12]);
         }
     }
+    std::vector<double> positions_ = positions;
+    std::vector<std::string> names = m_joint_names;
+    positions[0] = positions_[2];
+    positions[1] = positions_[3];
+    positions[2] = positions_[0];
+    positions[3] = positions_[1];
+    m_joint_names[0] = names[2];
+    m_joint_names[1] = names[3];
+    m_joint_names[2] = names[0];
+    m_joint_names[3] = names[1];
     return ArmState(positions);
 }
 
@@ -269,6 +296,10 @@ const moveit_msgs::RobotTrajectory Planner::trajFromSplines(const std::vector<Sp
 {
     moveit_msgs::RobotTrajectory traj;
     traj.joint_trajectory.header.stamp = ros::Time::now();
+    for(int joint_id = 0; joint_id < m_num_joints; joint_id ++)
+    {
+        traj.joint_trajectory.joint_names.push_back(m_joint_names[joint_id]);
+    }
     std::vector<std::vector<double>> points;
     std::vector<double> times;
     double spline_it = 0;
@@ -309,35 +340,12 @@ const Spline1d Planner::calcSpline(const std::vector<double> &angles)
         points(0, time_it) = time_it * m_angular_joint_res / m_angular_velocity;
     }
     const Spline1d &spline = Spline1dFitting::Interpolate(points, m_spline_order);
-    pubSpline(spline);
-    ros::Duration(1).sleep();
     return spline;
-}
-
-void Planner::pubSpline(const Spline1d &spline)
-{
-    double it =0;
-    double rez = 0.01;
-    nav_msgs::Path path;
-    path.header.frame_id = "base";
-    while(it < 1)
-    {
-        const Eigen::MatrixXd &spline_pt = spline(it);
-        const double &x = spline_pt(0);
-        const double &y = spline_pt(1);
-        it += rez;
-        geometry_msgs::PoseStamped pose;
-        pose.pose.position.x = x;
-        pose.pose.position.y = y;
-        path.poses.push_back(pose);
-    }
-    m_spline_pub.publish(path);
 }
 
 bool Planner::planRequestCallback(planner::PlanTrajectory::Request &req, planner::PlanTrajectory::Response &res)
 {
     std::vector<double> positions;
-    std::vector<double> velocities;
     for(int i = 0; i < m_num_joints; i++)
     {
         positions.push_back(req.goal_pose.position[i]);
