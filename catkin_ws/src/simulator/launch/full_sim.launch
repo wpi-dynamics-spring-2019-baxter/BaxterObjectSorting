@@ -24,7 +24,7 @@
 
   <!-- We resume the logic in empty_world.launch, changing the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find baxter_gazebo)/worlds/baxter.world"/>
+    <arg name="world_name" value="$(find simulator)/worlds/baxter_object_sorting.world"/>
     <arg name="debug" value="$(arg debug)" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="paused" value="$(arg paused)"/>
@@ -63,11 +63,8 @@
       <arg name="gui" value="$(arg gui)" />
   </include>
 
-
-  <node name="planner_node" pkg="planner" type="planner_node" output="screen">
-      <rosparam command="load" file="$(find planner)/param/planner_params.yaml"/>
-  </node>
-
+  <!-- enable baxter -->
+  <node name="enable_robot" pkg="baxter_tools" type="enable_robot.py" output="screen" args="-e"/>
 
 
 </launch>
