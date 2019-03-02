@@ -25,8 +25,14 @@
       </camera>
     </gui>
 
+    <include>
+      <uri>model://table</uri>
+      <pose>0.8 0 0 0 0 1.57079632679</pose>
+    </include>
+
     <model name="kinect">
-      <pose>-1 0 0.036 0 0 0</pose>
+      <static>true</static>
+      <pose>0.25 0 1.85 0 1.1 0</pose>
       <link name="link">
         <inertial>
           <mass>0.1</mass>
