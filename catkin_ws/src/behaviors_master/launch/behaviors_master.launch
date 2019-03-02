@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <node name="behaviors_master_node" pkg="behaviors_master" type="behaviors_master_node" output="screen">
+        <rosparam command="load" file="$(find behaviors_master)/param/behaviors_master_params.yaml"/>
+    </node>
+</launch>
