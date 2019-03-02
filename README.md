@@ -8,7 +8,7 @@ To install:
 
 install eigen library from http://eigen.tuxfamily.org/index.php?title=Main_Page#Download
 
-sudo apt-get install gazebo7 ros-kinetic-qt-build ros-kinetic-gazebo-ros-control ros-kinetic-gazebo-ros-pkgs ros-kinetic-ros-control ros-kinetic-control-toolbox ros-kinetic-realtime-tools ros-kinetic-ros-controllers ros-kinetic-xacro python-wstool ros-kinetic-tf-conversions ros-kinetic-kdl-parser
+sudo apt-get install gazebo7 ros-kinetic-qt-build ros-kinetic-gazebo-ros-control ros-kinetic-gazebo-ros-pkgs ros-kinetic-ros-control ros-kinetic-control-toolbox ros-kinetic-realtime-tools ros-kinetic-ros-controllers ros-kinetic-xacro python-wstool ros-kinetic-tf-conversions ros-kinetic-kdl-parser ros-kinetic-libfreenect ros-kinetic-freenect-camera ros-kinetic-freenect-launch ros-kinetic-octopmap-server
 
 git clone https://github.com/wpi-dynamics-spring-2019-baxter/BaxterObjectSorting
 
