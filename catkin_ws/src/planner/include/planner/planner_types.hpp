@@ -4,6 +4,25 @@
 namespace Baxter
 {
 
+struct Point
+{
+    Point(const double &x_, const double &y_, const double &z_) :
+        x(x_),
+        y(y_),
+        z(z_)
+        {}
+    ~Point() = default;
+      bool operator==(const Point &rhs) const
+      {
+          return (rhs.x == x && rhs.y == y && rhs.z == z);
+      }
+
+      double x;
+      double y;
+      double z;
+
+};
+
 struct ArmState
 {
     ArmState(){}

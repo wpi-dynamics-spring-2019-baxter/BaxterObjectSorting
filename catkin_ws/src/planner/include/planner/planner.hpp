@@ -2,7 +2,8 @@
 #include <ros/ros.h>
 #include <kinematics.hpp>
 #include <moveit_msgs/RobotTrajectory.h>
-#include <nav_msgs/Path.h>
+#include <octomap_msgs/conversions.h>
+#include <octomap_msgs/Octomap.h>
 #include <planner/PlanTrajectory.h>
 #include <planner_types.hpp>
 #include <queue>
@@ -24,9 +25,9 @@ public:
     Planner(ros::NodeHandle &nh, ros::NodeHandle &pnh);
     ~Planner();
 
-
 private:
     bool planRequestCallback(planner::PlanTrajectory::Request &req, planner::PlanTrajectory::Response &res);
+    void octomapCallback(const octomap_msgs::Octomap::ConstPtr &msg);
     void jointStateCallback(const sensor_msgs::JointState::ConstPtr &msg);
     void getParams(ros::NodeHandle &pnh);
     void initializePlanner();
@@ -39,21 +40,23 @@ private:
     const bool checkForGoal(const GraphNode &node);
     void openNode(const GraphNode &node);
     void closeNode(const GraphNode &node);
+    const bool checkForCollision(const std::vector<Point> &points);
     const ArmState getCurrentState(const std::string &arm);
     const moveit_msgs::RobotTrajectory reconstructTrajectory();
     const std::vector<ArmState> reverseStates(const std::vector<ArmState> &reverse_states);
     const moveit_msgs::RobotTrajectory trajFromSplines(const std::vector<Spline1d> &splines);
-    const Spline1d calcSpline(const std::vector<double> &angles);
+    const Spline1d calcSpline(const std::vector<double> &angles);    
 
     ros::ServiceServer m_planner_server;
+    ros::Subscriber m_octomap_sub;
     ros::Subscriber m_joint_state_sub;
 
     std::priority_queue<GraphNode, std::vector<GraphNode>, GraphNode::CheaperCost> m_frontier;
     std::unordered_map<int, GraphNode> m_nodes;
     std::vector<GraphNode> m_open_nodes;
     std::vector<GraphNode> m_closed_nodes;
-    Kinematics *m_fkin;
-    std::vector<std::string> m_joint_names;
+    std::vector<std::string> m_joint_names;    
+    octomap_msgs::Octomap::ConstPtr m_oc_tree;
     sensor_msgs::JointState::ConstPtr m_joint_states;
 
 

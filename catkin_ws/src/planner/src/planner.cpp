@@ -7,20 +7,20 @@ namespace Baxter
 Planner::Planner(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
     m_planner_server = nh.advertiseService("/plan_trajectory", &Planner::planRequestCallback, this);
+    m_octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, &Planner::octomapCallback, this);
     m_joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/robot/joint_states", 10, &Planner::jointStateCallback, this);
     getParams(pnh);
 }
 
 Planner::~Planner()
 {
-    delete m_fkin;
     delete m_goal_state;
 }
 
 void Planner::getParams(ros::NodeHandle &pnh)
 {
-    m_angle_mins.resize(7);
-    m_angle_maxes.resize(7);
+    m_angle_mins.resize(m_num_joints);
+    m_angle_maxes.resize(m_num_joints);
     pnh.getParam("th1_min", m_angle_mins[0]);    
     pnh.getParam("th2_min", m_angle_mins[1]);
     pnh.getParam("th3_min", m_angle_mins[2]);
@@ -48,14 +48,13 @@ void Planner::initializePlanner()
     m_nodes.clear();
     m_open_nodes.clear();
     m_closed_nodes.clear();
-    m_joint_names.clear();
+    m_joint_names.clear();    
 }
 
 moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
 {
     initializePlanner();
     const ArmState start_state = getCurrentState(arm);
-    m_fkin = new Kinematics(start_state);
 //    tf::TransformListener list;
 //    tf::StampedTransform trans;
 //    ros::Duration(5).sleep();
@@ -71,7 +70,7 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
     while(true)
     {
         dur = ros::Time::now() - start_time;
-        current_node = m_frontier.top();        
+        current_node = m_frontier.top();
         if(checkForGoal(current_node))
         {
             ROS_INFO_STREAM("Trajectory for " << arm << " Arm Found in " << dur.toSec() << " seconds");
@@ -357,6 +356,11 @@ bool Planner::planRequestCallback(planner::PlanTrajectory::Request &req, planner
     m_goal_state = new ArmState(positions);
     res.traj = planTrajectory(req.arm);
     return true;
+}
+
+void Planner::octomapCallback(const octomap_msgs::Octomap::ConstPtr &msg)
+{   
+   m_oc_tree = msg;
 }
 
 void Planner::jointStateCallback(const sensor_msgs::JointState::ConstPtr &msg)

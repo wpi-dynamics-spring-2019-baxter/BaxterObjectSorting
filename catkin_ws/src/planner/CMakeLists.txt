@@ -8,10 +8,13 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(Eigen3 REQUIRED)
+find_package(octomap REQUIRED)
 find_package(catkin REQUIRED COMPONENTS   
   geometry_msgs
   message_generation
   moveit_msgs
+  octomap
+  octomap_msgs
   roscpp
   sensor_msgs
   tf
@@ -109,7 +112,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include/planner
 #  LIBRARIES planner
-  CATKIN_DEPENDS geometry_msgs message_generation moveit_msgs roscpp sensor_msgs tf
+  CATKIN_DEPENDS geometry_msgs octomap_msgs message_generation moveit_msgs roscpp sensor_msgs tf
 #  DEPENDS system_lib
 )
 
@@ -121,6 +124,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include/planner
+  ${OCTOMAP_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -137,7 +141,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/planner_node.cpp src/planner.cpp src/kinematics.cpp)
+add_executable(${PROJECT_NAME}_node src/planner_node.cpp src/planner.cpp src/kinematics.cpp src/collision_detector.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -153,6 +157,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
    Eigen3::Eigen
+   ${OCTOMAP_LIBRARIES}
 
 )
 

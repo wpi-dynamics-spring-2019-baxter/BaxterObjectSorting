@@ -1,5 +1,5 @@
-table_clearance_height: 0.2
-
+collision_buffer: 0.01
+arm_radius = 0.06
 
 angular_joint_res: 0.1
 angular_joint_velocity: 0.5
