@@ -5,7 +5,7 @@ namespace Baxter
 
 CollisionDetector::CollisionDetector(ros::NodeHandle &pnh, const ArmState &start_state, const std::string &arm, const octomap_msgs::Octomap::ConstPtr &tree)
 {
-    m_oc_tree = dynamic_cast<octomap::OcTree*>(octomap_msgs::binaryMsgToMap(*tree));    
+    m_oc_tree = dynamic_cast<octomap::OcTree*>(octomap_msgs::binaryMsgToMap(*tree));
     m_fkin = new Kinematics(pnh, start_state, arm);
     getParams(pnh);
     createCollisionPoints();
@@ -67,6 +67,7 @@ void CollisionDetector::createLinks()
         const int num_z_pts = m_joint_lengths[joint_id] / m_collision_cart_res;
         for(int z_it = 0; z_it < num_z_pts; z_it++)
         {
+            ROS_INFO_STREAM("iterator " << z_it << " of " << num_z_pts);
             for(const auto & pt : link_pts)
             {
                 Eigen::Vector4d new_pt;

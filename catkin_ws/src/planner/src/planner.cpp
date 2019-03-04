@@ -4,42 +4,43 @@
 namespace Baxter
 {
 
-Planner::Planner(ros::NodeHandle &nh, ros::NodeHandle &pnh)
+Planner::Planner(ros::NodeHandle &nh, ros::NodeHandle &pnh) : m_pnh(pnh)
 {
     m_planner_server = nh.advertiseService("/plan_trajectory", &Planner::planRequestCallback, this);
     m_octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, &Planner::octomapCallback, this);
     m_joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/robot/joint_states", 10, &Planner::jointStateCallback, this);
-    getParams(pnh);
+    getParams();
 }
 
 Planner::~Planner()
 {
+    delete m_col_det;
     delete m_goal_state;
 }
 
-void Planner::getParams(ros::NodeHandle &pnh)
+void Planner::getParams()
 {
     m_angle_mins.resize(m_num_joints);
     m_angle_maxes.resize(m_num_joints);
-    pnh.getParam("th1_min", m_angle_mins[0]);    
-    pnh.getParam("th2_min", m_angle_mins[1]);
-    pnh.getParam("th3_min", m_angle_mins[2]);
-    pnh.getParam("th4_min", m_angle_mins[3]);
-    pnh.getParam("th5_min", m_angle_mins[4]);
-    pnh.getParam("th6_min", m_angle_mins[5]);
-    pnh.getParam("th7_min", m_angle_mins[6]);
-    pnh.getParam("th1_max", m_angle_maxes[0]);
-    pnh.getParam("th2_max", m_angle_maxes[1]);
-    pnh.getParam("th3_max", m_angle_maxes[2]);
-    pnh.getParam("th4_max", m_angle_maxes[3]);
-    pnh.getParam("th5_max", m_angle_maxes[4]);
-    pnh.getParam("th6_max", m_angle_maxes[5]);
-    pnh.getParam("th7_max", m_angle_maxes[6]);
-    pnh.getParam("angular_joint_res", m_angular_joint_res);
-    pnh.getParam("angular_joint_velocity", m_angular_velocity);
-    pnh.getParam("spline_order", m_spline_order);
-    pnh.getParam("spline_res", m_spline_res);
-    pnh.getParam("pos_error_tol", m_pos_error_tol);
+    m_pnh.getParam("th1_min", m_angle_mins[0]);
+    m_pnh.getParam("th2_min", m_angle_mins[1]);
+    m_pnh.getParam("th3_min", m_angle_mins[2]);
+    m_pnh.getParam("th4_min", m_angle_mins[3]);
+    m_pnh.getParam("th5_min", m_angle_mins[4]);
+    m_pnh.getParam("th6_min", m_angle_mins[5]);
+    m_pnh.getParam("th7_min", m_angle_mins[6]);
+    m_pnh.getParam("th1_max", m_angle_maxes[0]);
+    m_pnh.getParam("th2_max", m_angle_maxes[1]);
+    m_pnh.getParam("th3_max", m_angle_maxes[2]);
+    m_pnh.getParam("th4_max", m_angle_maxes[3]);
+    m_pnh.getParam("th5_max", m_angle_maxes[4]);
+    m_pnh.getParam("th6_max", m_angle_maxes[5]);
+    m_pnh.getParam("th7_max", m_angle_maxes[6]);
+    m_pnh.getParam("angular_joint_res", m_angular_joint_res);
+    m_pnh.getParam("angular_joint_velocity", m_angular_velocity);
+    m_pnh.getParam("spline_order", m_spline_order);
+    m_pnh.getParam("spline_res", m_spline_res);
+    m_pnh.getParam("pos_error_tol", m_pos_error_tol);
 }
 
 void Planner::initializePlanner()
@@ -55,13 +56,7 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
 {
     initializePlanner();
     const ArmState start_state = getCurrentState(arm);
-//    tf::TransformListener list;
-//    tf::StampedTransform trans;
-//    ros::Duration(5).sleep();
-//    list.lookupTransform("left_arm_mount", "l_gripper_l_finger_tip", ros::Time(0), trans);
-//    ROS_INFO_STREAM(trans.getOrigin().getX() << " " << trans.getOrigin().getY() << " " << trans.getOrigin().getZ());
-//    auto transforms = m_fkin->getCartesianPositions(start_state);
-//    ROS_INFO_STREAM(transforms.back().x << " " << transforms.back().y << " " << transforms.back().z);
+    m_col_det = new CollisionDetector(m_pnh, start_state, arm, m_oc_tree);
     GraphNode current_node(m_graph_id, m_graph_id, start_state, 0, std::numeric_limits<double>::infinity());
     m_graph_id++;
     openNode(current_node);
@@ -71,6 +66,12 @@ moveit_msgs::RobotTrajectory Planner::planTrajectory(const std::string &arm)
     {
         dur = ros::Time::now() - start_time;
         current_node = m_frontier.top();
+        while(m_col_det->checkForCollision(current_node.current_state))
+        {
+            closeNode(current_node);
+            m_frontier.pop();
+            current_node = m_frontier.top();
+        }
         if(checkForGoal(current_node))
         {
             ROS_INFO_STREAM("Trajectory for " << arm << " Arm Found in " << dur.toSec() << " seconds");

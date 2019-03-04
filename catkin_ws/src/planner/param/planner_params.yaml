@@ -1,7 +1,7 @@
 collision_buffer: 0.01
-arm_radius = 0.06
-collision_cart_res: 0.01
-collision_ang_res: 0.1
+arm_radius: 0.06
+collision_cart_res: 0.05
+collision_ang_res: 0.785398
 
 angular_joint_res: 0.1
 angular_joint_velocity: 0.5

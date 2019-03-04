@@ -1,6 +1,6 @@
 #pragma once
 #include <ros/ros.h>
-#include <kinematics.hpp>
+#include <collision_detector.hpp>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <octomap_msgs/conversions.h>
 #include <octomap_msgs/Octomap.h>
@@ -10,8 +10,6 @@
 #include <sensor_msgs/JointState.h>
 #include <unordered_map>
 #include <unsupported/Eigen/Splines>
-#include <tf/tf.h>
-#include <tf/transform_listener.h>
 
 namespace Baxter
 {
@@ -29,7 +27,7 @@ private:
     bool planRequestCallback(planner::PlanTrajectory::Request &req, planner::PlanTrajectory::Response &res);
     void octomapCallback(const octomap_msgs::Octomap::ConstPtr &msg);
     void jointStateCallback(const sensor_msgs::JointState::ConstPtr &msg);
-    void getParams(ros::NodeHandle &pnh);
+    void getParams();
     void initializePlanner();
     moveit_msgs::RobotTrajectory planTrajectory(const std::string &arm);
     void expandFrontier(const GraphNode &node);
@@ -58,9 +56,9 @@ private:
     std::vector<std::string> m_joint_names;    
     octomap_msgs::Octomap::ConstPtr m_oc_tree;
     sensor_msgs::JointState::ConstPtr m_joint_states;
-
-
+    CollisionDetector *m_col_det;
     ArmState *m_goal_state;
+    ros::NodeHandle &m_pnh;
 
     //params
     std::vector<double> m_angle_mins;
