@@ -1,11 +1,24 @@
 collision_buffer: 0.01
 arm_radius = 0.06
+collision_cart_res: 0.01
+collision_ang_res: 0.1
 
 angular_joint_res: 0.1
 angular_joint_velocity: 0.5
 pos_error_tol: 0.1
 spline_order: 3
 spline_res: .001
+
+l0: 0.27035
+l1: 0.06900
+l2: 0.36435
+l3: 0.06900
+l4: 0.37429
+l5: 0.01000
+l6: 0.38735
+H:  0.18400
+L:  0.27800
+h:  0.06400
 
 th1_max: 0.890118
 th2_max: 1.047200

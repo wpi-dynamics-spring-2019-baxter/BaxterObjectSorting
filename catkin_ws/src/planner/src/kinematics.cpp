@@ -3,8 +3,22 @@
 namespace Baxter
 {
 
-Kinematics::Kinematics(const ArmState &state)
+Kinematics::Kinematics(ros::NodeHandle &pnh, const ArmState &state, const std::string &arm) : m_arm(arm)
 {
+    pnh.getParam("l0", l0);
+    pnh.getParam("l1", l1);
+    pnh.getParam("l2", l2);
+    pnh.getParam("l3", l3);
+    pnh.getParam("l4", l4);
+    pnh.getParam("l5", l5);
+    pnh.getParam("l6", l6);
+    pnh.getParam("H", H);
+    pnh.getParam("L", L);
+    pnh.getParam("h", h);
+    if(arm == "right")
+    {
+        L = -L;
+    }
     std::vector<double> angles = state.positions;
     createTransforms(angles);
 }
@@ -13,7 +27,8 @@ Kinematics::~Kinematics(){}
 
 void Kinematics::createTransforms(const std::vector<double> &angles)
 {
-    createTb0();
+    createTbab();
+    createTab0();
     createT01(angles[0]);
     createT12(angles[1]);
     createT23(angles[2]);
@@ -24,17 +39,12 @@ void Kinematics::createTransforms(const std::vector<double> &angles)
     createT7g();
 }
 
-std::vector<geometry_msgs::Point> Kinematics::getCartesianPositions(const ArmState &state)
+std::vector<Eigen::Matrix4d> Kinematics::getTransforms(const ArmState &state)
 {
     std::vector<double> angles = state.positions;
     updateTransforms(angles);
     const std::vector<Eigen::Matrix4d> &tfs = getJointTransforms();
-    std::vector<geometry_msgs::Point> pts;
-    for(const auto &tf : tfs)
-    {
-        pts.push_back(extractPointFromTf(tf));
-    }
-    return pts;
+    return tfs;
 }
 
 void Kinematics::updateTransforms(const std::vector<double> &angles)
@@ -50,54 +60,63 @@ void Kinematics::updateTransforms(const std::vector<double> &angles)
 
 const std::vector<Eigen::Matrix4d> Kinematics::getJointTransforms() const
 {
-    std::vector<Eigen::Matrix4d> tfs;
-    const Eigen::Matrix4d &tb1 = tb0 * t01;
+    std::vector<Eigen::Matrix4d> tfs;    
+    const Eigen::Matrix4d &tb1 = tbab * tab0 * t01;
     const Eigen::Matrix4d &tb2 = tb1 * t12;
     const Eigen::Matrix4d &tb3 = tb2 * t23;
     const Eigen::Matrix4d &tb4 = tb3 * t34;
     const Eigen::Matrix4d &tb5 = tb4 * t45;
     const Eigen::Matrix4d &tb6 = tb5 * t56;
     const Eigen::Matrix4d &tb7 = tb6 * t67;
-    const Eigen::Matrix4d &tbg = tb7 * t7g;
-    tfs.push_back(tb0);
+    const Eigen::Matrix4d &tbg = tb7 * t7g;    
     tfs.push_back(tb1);
     tfs.push_back(tb2);
     tfs.push_back(tb3);
     tfs.push_back(tb4);
     tfs.push_back(tb5);
-    tfs.push_back(tb6);
-    tfs.push_back(tb7);
+    tfs.push_back(tb6);    
     tfs.push_back(tbg);
     return tfs;
 }
 
-const geometry_msgs::Point Kinematics::extractPointFromTf(const Eigen::Matrix4d &tf) const
+void Kinematics::createTbab()
 {
-    geometry_msgs::Point pt;
-    pt.x = tf(3, 0);
-    pt.y = tf(3, 1);
-    pt.z = tf(3, 2);
-    return pt;
+    tbab(0, 0) = sqrt(2) / 2;
+    tbab(1, 0) = sqrt(2) / 2;
+    tbab(2, 0) = 0;
+    tbab(3, 0) = L;
+    tbab(0, 1) = -sqrt(2) / 2;
+    tbab(1, 1) = sqrt(2) / 2;
+    tbab(2, 1) = 0;
+    tbab(3, 1) = -h;
+    tbab(0, 2) = 0;
+    tbab(1, 2) = 0;
+    tbab(2, 2) = 1;
+    tbab(3, 2) = H;
+    tbab(0, 3) = 0;
+    tbab(1, 3) = 0;
+    tbab(2, 3) = 0;
+    tbab(3, 3) = 1;
 }
 
-void Kinematics::createTb0()
+void Kinematics::createTab0()
 {
-    tb0(0, 0) = 1;
-    tb0(1, 0) = 0;
-    tb0(2, 0) = 0;
-    tb0(3, 0) = 0;
-    tb0(0, 1) = 0;
-    tb0(1, 1) = 1;
-    tb0(2, 1) = 0;
-    tb0(3, 1) = 0;
-    tb0(0, 2) = 0;
-    tb0(1, 2) = 0;
-    tb0(2, 2) = 1;
-    tb0(3, 2) = l0;
-    tb0(0, 3) = 0;
-    tb0(1, 3) = 0;
-    tb0(2, 3) = 0;
-    tb0(3, 3) = 1;
+    tab0(0, 0) = 1;
+    tab0(1, 0) = 0;
+    tab0(2, 0) = 0;
+    tab0(3, 0) = 0;
+    tab0(0, 1) = 0;
+    tab0(1, 1) = 1;
+    tab0(2, 1) = 0;
+    tab0(3, 1) = 0;
+    tab0(0, 2) = 0;
+    tab0(1, 2) = 0;
+    tab0(2, 2) = 1;
+    tab0(3, 2) = l0;
+    tab0(0, 3) = 0;
+    tab0(1, 3) = 0;
+    tab0(2, 3) = 0;
+    tab0(3, 3) = 1;
 }
 
 void Kinematics::createT01(const double &angle)
