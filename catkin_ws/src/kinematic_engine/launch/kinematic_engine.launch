@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <node pkg="kinematic_engine" name="Inverse_Kinematics_Python" type="Inverse_Kinematics_Python.py" output="screen"/>
+</launch>
+
+
