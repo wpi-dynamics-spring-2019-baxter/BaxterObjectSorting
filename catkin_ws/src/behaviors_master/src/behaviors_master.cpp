@@ -7,12 +7,13 @@ BehaviorsMaster::BehaviorsMaster(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
     m_planner_client = nh.serviceClient<planner::PlanTrajectory>("/plan_trajectory");
     m_controller_client = nh.serviceClient<controller::ExecuteTrajectory>("/execute_trajectory");
-    test();
+    m_right_gripper_pub = nh.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command", 10);
+    m_left_gripper_pub = nh.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/left_gripper/command", 10);
+    sort();
 }
 
-void BehaviorsMaster::test()
+void BehaviorsMaster::sort()
 {
-    ROS_INFO_STREAM("calling plan thing");
     sensor_msgs::JointState state;
     state.position.push_back(0);
     state.position.push_back(0.5);
@@ -23,10 +24,8 @@ void BehaviorsMaster::test()
     state.position.push_back(0.5);
     moveit_msgs::RobotTrajectory right_traj, left_traj;
     planTrajectory(state, "right", right_traj);
-    ROS_INFO_STREAM("executing");
     executeTrajectories(right_traj, left_traj);
 }
-
 
 const bool BehaviorsMaster::planTrajectory(const sensor_msgs::JointState &state, const std::string &arm, moveit_msgs::RobotTrajectory &traj)
 {
@@ -53,6 +52,38 @@ const bool BehaviorsMaster::executeTrajectories(const moveit_msgs::RobotTrajecto
         return false;
     }
     return true;
+}
+
+void BehaviorsMaster::openRightGripper()
+{
+    baxter_core_msgs::EndEffectorCommand cmd;
+    cmd.command = baxter_core_msgs::EndEffectorCommand::CMD_GO;
+    cmd.args = "{\"position\": 100.0}";
+    m_right_gripper_pub.publish(cmd);
+}
+
+void BehaviorsMaster::closeRightGripper()
+{
+    baxter_core_msgs::EndEffectorCommand cmd;
+    cmd.command = baxter_core_msgs::EndEffectorCommand::CMD_GO;
+    cmd.args = "{\"position\": 0.0}";
+    m_right_gripper_pub.publish(cmd);
+}
+
+void BehaviorsMaster::openLeftGripper()
+{
+    baxter_core_msgs::EndEffectorCommand cmd;
+    cmd.command = baxter_core_msgs::EndEffectorCommand::CMD_GO;
+    cmd.args = "{\"position\": 100.0}";
+    m_left_gripper_pub.publish(cmd);
+}
+
+void BehaviorsMaster::closeLeftGripper()
+{
+    baxter_core_msgs::EndEffectorCommand cmd;
+    cmd.command = baxter_core_msgs::EndEffectorCommand::CMD_GO;
+    cmd.args = "{\"position\": 0.0}";
+    m_left_gripper_pub.publish(cmd);
 }
 
 

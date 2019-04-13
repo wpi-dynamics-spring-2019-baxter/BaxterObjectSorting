@@ -84,6 +84,7 @@ void CollisionDetector::createLinks()
 
 const bool CollisionDetector::checkForCollision(const ArmState &state)
 {
+    return false;
     std::vector<Eigen::Matrix4d> tfs = m_fkin->getTransforms(state);
     std::vector<Point> transformed_pts = transformColPoints(tfs);
     for(const auto &pt : transformed_pts)

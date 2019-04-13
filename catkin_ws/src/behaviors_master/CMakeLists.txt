@@ -8,8 +8,11 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  baxter_core_msgs
   geometry_msgs
   controller
+  kinematic_engine
+  object_detector
   planner
   roscpp
   sensor_msgs
@@ -110,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
    INCLUDE_DIRS include/behaviors_master
 #  LIBRARIES behaviors_master
-   CATKIN_DEPENDS controller geometry_msgs planner roscpp sensor_msgs
+   CATKIN_DEPENDS baxter_core_msgs controller geometry_msgs kinematic_engine object_detector planner roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 

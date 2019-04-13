@@ -51,19 +51,26 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>controller</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>kinematic_engine</build_depend>
+  <build_depend>object_detector</build_depend>
   <build_depend>planner</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_export_depend>controller</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>kinematic_engine</build_export_depend>
+  <build_export_depend>object_detector</build_export_depend>
   <build_export_depend>planner</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <exec_depend>controller</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>kinematic_engine</exec_depend>
+  <exec_depend>object_detector</exec_depend>
   <exec_depend>planner</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <depend>baxter_core_msgs</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
