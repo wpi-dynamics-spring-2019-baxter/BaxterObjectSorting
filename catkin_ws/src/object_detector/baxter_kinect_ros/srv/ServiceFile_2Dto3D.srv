@@ -1,0 +1,3 @@
+geometry_msgs/PoseStamped[] centroids
+---
+geometry_msgs/PoseStamped[] d3_points
