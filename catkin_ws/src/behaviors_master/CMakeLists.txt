@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   baxter_core_msgs
   geometry_msgs
   controller
+
   kinematic_engine
   object_detector
   planner
@@ -73,13 +74,14 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#   DEPENDENCIES
+generate_messages(
+   DEPENDENCIES
+   fruitIdentifier
 #   controller
 #   geometry_msgs
 #   planner
 #   sensor_msgs
-#)
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -113,7 +115,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
    INCLUDE_DIRS include/behaviors_master
 #  LIBRARIES behaviors_master
-   CATKIN_DEPENDS baxter_core_msgs controller geometry_msgs kinematic_engine object_detector planner roscpp sensor_msgs
+   CATKIN_DEPENDS baxter_core_msgs  controller fruitIdentifier geometry_msgs kinematic_engine object_detector planner roscpp sensor_msgs
 #  DEPENDS system_lib
 )
 

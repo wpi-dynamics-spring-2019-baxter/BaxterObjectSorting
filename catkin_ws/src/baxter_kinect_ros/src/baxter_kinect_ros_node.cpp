@@ -16,8 +16,5 @@ int main(int argc, char** argv){
     ROS_INFO_STREAM("inside main function");
 
     ros::spin();
-//    while (ok()){
-//        spin();
-//    }
     return 0;
 }

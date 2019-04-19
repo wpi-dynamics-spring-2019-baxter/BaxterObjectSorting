@@ -35,5 +35,5 @@ public:
     }
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
     bool serviceCallback( baxter_kinect_ros::ServiceFile_2Dto3D::Request &req, baxter_kinect_ros::ServiceFile_2Dto3D::Response &res );
-    Point3f get3DPoints(int u, int v);
+    void get3DPoints(int u,int v, Point3f& world_points);
 };

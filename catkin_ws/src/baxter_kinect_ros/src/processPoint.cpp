@@ -23,17 +23,21 @@ bool processPoint::serviceCallback( baxter_kinect_ros::ServiceFile_2Dto3D::Reque
     for (auto& itr: req.centroids){
         int u = itr.pose.position.x;
         int v = itr.pose.position.y;
-        world_points = get3DPoints(u,v);
+        ROS_INFO_STREAM("u v values: "<<u<<","<<v);
+        get3DPoints(u,v,world_points);
+        ROS_INFO_STREAM("world pts after processing: "<<world_points.x<<" "<<world_points.y<<" "<<world_points.z);
         res.d3_points[count].pose.position.x = world_points.x;
         res.d3_points[count].pose.position.y = world_points.y;
         res.d3_points[count].pose.position.z = world_points.z;
         res.d3_points[count].header.frame_id = itr.header.frame_id;
+
+        ROS_INFO_STREAM("o/p of servcallback: "<< res.d3_points[count].pose.position.x<<" "<<res.d3_points[count].pose.position.y<<" "<<res.d3_points[count].pose.position.z);
         count++;
     }
     return true;
 }
 
-Point3f processPoint::get3DPoints(int u, int v) {
+void processPoint::get3DPoints(int u, int v, Point3f& world_points) {
     // raw depth value from RGB pixel coordinate
     vector<vector<Point2f>> fruit_centroids;
 
@@ -64,11 +68,12 @@ Point3f processPoint::get3DPoints(int u, int v) {
     float x = (float)output.points[i].x;
     float y = (float)output.points[i].y;
     float z = (float)output.points[i].z;
-    //string name_ = output.channels[i].name;
+
     //ROS_INFO_STREAM("printing name"<<name_);
-    ROS_INFO_STREAM(x<<" "<<y<<" "<<z);
-    Point3f world_points;
+
+    //Point3f world_points;
     world_points = Point3f(x,y,z);
-    return world_points;
+    ROS_INFO_STREAM("world pts: "<<world_points.x<<" "<<world_points.y<<" "<<world_points.z);
+
 }
 

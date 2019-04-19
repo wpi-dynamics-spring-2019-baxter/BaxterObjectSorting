@@ -71,6 +71,7 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <depend>baxter_core_msgs</depend>
+  <depend>fruitIdentifier</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -5,6 +5,8 @@ namespace Baxter
 
 BehaviorsMaster::BehaviorsMaster(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
+    m_fruit_client = nh.serviceClient<fruitIdentifier::findCentroid>("/get_fruits");
+    m_ik_client = nh.serviceClient<kinematic_engine::GetIK>("/get_ik");
     m_planner_client = nh.serviceClient<planner::PlanTrajectory>("/plan_trajectory");
     m_controller_client = nh.serviceClient<controller::ExecuteTrajectory>("/execute_trajectory");
     m_right_gripper_pub = nh.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command", 10);
@@ -14,17 +16,30 @@ BehaviorsMaster::BehaviorsMaster(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 
 void BehaviorsMaster::sort()
 {
-    sensor_msgs::JointState state;
-    state.position.push_back(0);
-    state.position.push_back(0.5);
-    state.position.push_back(0.5);
-    state.position.push_back(0.5);
-    state.position.push_back(0.5);
-    state.position.push_back(0.5);
-    state.position.push_back(0.5);
-    moveit_msgs::RobotTrajectory right_traj, left_traj;
-    planTrajectory(state, "right", right_traj);
-    executeTrajectories(right_traj, left_traj);
+    const std::vector<geometry_msgs::PoseStamped> fruits = getFruits();
+    for(const auto &fruit : fruits)
+    {
+        const sensor_msgs::JointState goal = getIK(fruit.pose);
+        moveit_msgs::RobotTrajectory right_traj, left_traj;
+        planTrajectory(goal, "right", right_traj);
+        openRightGripper();
+        executeTrajectories(right_traj, left_traj);
+        closeRightGripper();
+    }
+}
+
+const std::vector<geometry_msgs::PoseStamped> BehaviorsMaster::getFruits()
+{
+    fruitIdentifier::findCentroid srv;
+    m_fruit_client.call(srv);
+    std::vector<geometry_msgs::PoseStamped> fruits;
+
+    return fruits;
+}
+
+const sensor_msgs::JointState BehaviorsMaster::getIK(const geometry_msgs::Pose &goal)
+{
+
 }
 
 const bool BehaviorsMaster::planTrajectory(const sensor_msgs::JointState &state, const std::string &arm, moveit_msgs::RobotTrajectory &traj)

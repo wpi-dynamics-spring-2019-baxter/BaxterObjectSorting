@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <cv_bridge/cv_bridge.h>
 #include <fruitIdentifier/findCentroid.h>
+#include <baxter_kinect_ros/ServiceFile_2Dto3D.h>
+//#include <baxter_kinect_ros/processPoint.hpp>
 
 using std::experimental::filesystem::recursive_directory_iterator;
 using namespace std;
@@ -34,7 +36,7 @@ class Fruits{
 public:
     Fruits(NodeHandle& nh2D);
     void subscriberCallback2D(const sensor_msgs::Image ros_image);
-    bool serviceCallback2D(fruitIdentifier::findCentroid::Request& req, fruitIdentifier::findCentroid::Request& res);
+    bool serviceCallback2D(fruitIdentifier::findCentroid::Request& req, fruitIdentifier::findCentroid::Response& res);
     void runAll();
     void createAppleMask();
     void createBananaMask();
@@ -50,8 +52,9 @@ public:
 
     Mat img;
     Mat hsv_img;
-    vector<vector<Point2f>> fruit_centroids;
+    multimap <int, vector<Point2f> > fruit_centroids;
     int fruit;
+    int number_of_fruits;
 private:
     double apple_count, banana_count;
     vector<Moments> a_mu, b_mu;
@@ -61,6 +64,7 @@ private:
     vector<Vec4i> apple_hierarchy, banana_hierarchy;
     Subscriber sub2D;
     ServiceServer my_serv2D;
+    ServiceClient client;
 
 };
 

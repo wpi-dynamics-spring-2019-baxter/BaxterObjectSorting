@@ -1,2 +1,2 @@
 ---
-geometry_msgs/PoseStamped[] d3_points
+geometry_msgs/PoseStamped[] final_3d_points

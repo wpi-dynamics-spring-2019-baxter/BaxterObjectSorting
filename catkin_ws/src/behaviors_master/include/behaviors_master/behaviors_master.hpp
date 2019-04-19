@@ -2,6 +2,8 @@
 #include <ros/ros.h>
 #include <baxter_core_msgs/EndEffectorCommand.h>
 #include <controller/ExecuteTrajectory.h>
+#include <fruitIdentifier/findCentroid.h>
+#include <kinematic_engine/GetIK.h>
 #include <planner/PlanTrajectory.h>
 
 namespace Baxter
@@ -16,6 +18,8 @@ public:
 private:
 
     void sort();
+    const std::vector<geometry_msgs::PoseStamped> getFruits();
+    const sensor_msgs::JointState getIK(const geometry_msgs::Pose &goal);
     const bool planTrajectory(const sensor_msgs::JointState &state, const std::string &arm, moveit_msgs::RobotTrajectory &traj);
     const bool executeTrajectories(const moveit_msgs::RobotTrajectory &right_traj, const moveit_msgs::RobotTrajectory &left_traj);
     void openRightGripper();
@@ -23,6 +27,8 @@ private:
     void openLeftGripper();
     void closeLeftGripper();
 
+    ros::ServiceClient m_fruit_client;
+    ros::ServiceClient m_ik_client;
     ros::ServiceClient m_planner_client;
     ros::ServiceClient m_controller_client;
 
