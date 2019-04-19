@@ -25,6 +25,21 @@ void BehaviorsMaster::sort()
         openRightGripper();
         executeTrajectories(right_traj, left_traj);
         closeRightGripper();
+        geometry_msgs::Pose pose;
+        if(fruit.header.frame_id == "/x01")
+        {
+            pose = fruit.pose;
+            pose.position.x = pose.position.x - 0.5;
+        }
+        if(fruit.header.frame_id == "/x02")
+        {
+            pose = fruit.pose;
+            pose.position.x = pose.position.x + 0.5;
+        }
+        const sensor_msgs::JointState goal_placed = getIK(pose);
+        planTrajectory(goal, "right", right_traj);
+        executeTrajectories(right_traj, left_traj);
+        openRightGripper();
     }
 }
 
@@ -33,7 +48,7 @@ const std::vector<geometry_msgs::PoseStamped> BehaviorsMaster::getFruits()
     fruitIdentifier::findCentroid srv;
     m_fruit_client.call(srv);
     std::vector<geometry_msgs::PoseStamped> fruits;
-
+    fruits = srv.response.final_3d_points;
     return fruits;
 }
 
