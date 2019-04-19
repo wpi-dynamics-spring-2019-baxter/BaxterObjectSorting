@@ -17,11 +17,14 @@ BehaviorsMaster::BehaviorsMaster(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 void BehaviorsMaster::sort()
 {
     const std::vector<geometry_msgs::PoseStamped> fruits = getFruits();
+    ROS_INFO_STREAM("Found " << fruits.size() << " fruits");
     for(const auto &fruit : fruits)
     {
         const sensor_msgs::JointState goal = getIK(fruit.pose);
+        ROS_INFO_STREAM("got ik");
         moveit_msgs::RobotTrajectory right_traj, left_traj;
         planTrajectory(goal, "right", right_traj);
+        ROS_INFO_STREAM("planned trajectory");
         openRightGripper();
         executeTrajectories(right_traj, left_traj);
         closeRightGripper();
@@ -46,7 +49,10 @@ void BehaviorsMaster::sort()
 const std::vector<geometry_msgs::PoseStamped> BehaviorsMaster::getFruits()
 {
     fruitIdentifier::findCentroid srv;
-    m_fruit_client.call(srv);
+    if(!m_fruit_client.call(srv))
+    {
+        ROS_ERROR_STREAM("failed to get fruits");
+    }
     std::vector<geometry_msgs::PoseStamped> fruits;
     fruits = srv.response.final_3d_points;
     return fruits;
@@ -54,7 +60,13 @@ const std::vector<geometry_msgs::PoseStamped> BehaviorsMaster::getFruits()
 
 const sensor_msgs::JointState BehaviorsMaster::getIK(const geometry_msgs::Pose &goal)
 {
-
+    kinematic_engine::GetIK srv;
+    srv.request.pose = goal;
+    if(!m_ik_client.call(srv))
+    {
+        ROS_ERROR_STREAM("Failed to get IK");
+    }
+    return  srv.response.goal_state;
 }
 
 const bool BehaviorsMaster::planTrajectory(const sensor_msgs::JointState &state, const std::string &arm, moveit_msgs::RobotTrajectory &traj)

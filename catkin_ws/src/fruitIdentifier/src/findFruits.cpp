@@ -49,14 +49,15 @@ bool Fruits:: serviceCallback2D(fruitIdentifier::findCentroid::Request& req, fru
 
 
     if(client.call(srv)){
-        string frameID = srv.response.d3_points[1].header.frame_id;
+        ROS_INFO_STREAM("Successfully called the service to convert the 2D centroids to 3D points");
+        //string frameID = srv.response.d3_points[0].header.frame_id;
         res.final_3d_points = srv.response.d3_points;
         ROS_INFO_STREAM("Successfully called the service to convert the 2D centroids to 3D points");
-        ROS_INFO_STREAM("Fruit:   "<<frameID.c_str());
+        //ROS_INFO_STREAM("Fruit:   "<<frameID.c_str());
 
-        ROS_INFO_STREAM("x coord: "<<res.final_3d_points[1].pose.position.x);
-        ROS_INFO_STREAM("y coord: "<<res.final_3d_points[1].pose.position.y);
-        ROS_INFO_STREAM("z coord: "<<res.final_3d_points[1].pose.position.z);
+        ROS_INFO_STREAM("x coord: "<<res.final_3d_points[0].pose.position.x);
+        ROS_INFO_STREAM("y coord: "<<res.final_3d_points[0].pose.position.y);
+        ROS_INFO_STREAM("z coord: "<<res.final_3d_points[0].pose.position.z);
 
     }
     else{
