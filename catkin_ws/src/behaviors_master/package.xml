@@ -72,6 +72,7 @@
   <exec_depend>sensor_msgs</exec_depend>
   <depend>baxter_core_msgs</depend>
   <depend>fruitIdentifier</depend>
+  <depend>tf</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

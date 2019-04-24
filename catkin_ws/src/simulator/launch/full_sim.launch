@@ -37,8 +37,7 @@
   <param name="rethink/software_version" value="1.2.0" />
 
   <!-- Publish a static transform between the world and the base of the robot and also kinect -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_world" args="0 0 0 0 0 0 1 world base" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="kinect_to_world" args="0.35 0 1.1  0 0 0 world camera_link" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="kinect_to_world" args="0.35 0 0.19  -1.57079632679 0 -1.57079632679 base camera_link" />
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
@@ -80,7 +79,7 @@
 <include file="$(find controller)/launch/controller.launch"/>
 <include file="$(find planner)/launch/planner.launch"/>
 <include file="$(find baxter_kinect_ros)/launch/baxter_kinect.launch"/>
-<include file="$(find kinematic_engine)/launch/kinematic_engine.launch"/>
+
 
 
 </launch>

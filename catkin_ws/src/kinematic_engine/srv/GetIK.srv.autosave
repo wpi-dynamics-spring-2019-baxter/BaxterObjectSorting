@@ -1,6 +1,0 @@
-geometry_msgs/Pose pose
-string arm
-
----
-
-sensor_msgs/JointState goal_state

@@ -48,7 +48,7 @@ bool Controller::executeTrajectories(const moveit_msgs::RobotTrajectory &right_t
             }
             if(have_left)
             {
-                left_command.command.push_back(right_traj.joint_trajectory.points[left_it].positions[joint_id]);
+                left_command.command.push_back(left_traj.joint_trajectory.points[left_it].positions[joint_id]);
                 left_command.names.push_back(left_traj.joint_trajectory.joint_names[joint_id]);
             }
         }

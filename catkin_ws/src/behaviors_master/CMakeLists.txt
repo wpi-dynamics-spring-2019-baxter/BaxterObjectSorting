@@ -11,12 +11,12 @@ find_package(catkin REQUIRED COMPONENTS
   baxter_core_msgs
   geometry_msgs
   controller
-
   kinematic_engine
   object_detector
   planner
   roscpp
   sensor_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -115,7 +115,7 @@ generate_messages(
 catkin_package(
    INCLUDE_DIRS include/behaviors_master
 #  LIBRARIES behaviors_master
-   CATKIN_DEPENDS baxter_core_msgs  controller fruitIdentifier geometry_msgs kinematic_engine object_detector planner roscpp sensor_msgs
+   CATKIN_DEPENDS baxter_core_msgs  controller fruitIdentifier geometry_msgs kinematic_engine object_detector planner roscpp sensor_msgs tf
 #  DEPENDS system_lib
 )
 

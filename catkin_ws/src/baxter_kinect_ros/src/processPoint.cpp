@@ -9,7 +9,7 @@ processPoint::processPoint(NodeHandle &nh) {
 
 void processPoint::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud){
     ptcloud_ = cloud;
-    ROS_INFO_STREAM("inside callback");
+    //ROS_INFO_STREAM("inside callback");
     // if object detector gives (x,y) then feed the following function (y,x)
     //get3DPoints(248,393);
 }

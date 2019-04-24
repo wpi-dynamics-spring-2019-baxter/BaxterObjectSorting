@@ -1,10 +1,13 @@
 #pragma once
 #include <ros/ros.h>
 #include <baxter_core_msgs/EndEffectorCommand.h>
+#include <baxter_core_msgs/SolvePositionIK.h>
 #include <controller/ExecuteTrajectory.h>
 #include <fruitIdentifier/findCentroid.h>
 #include <kinematic_engine/GetIK.h>
 #include <planner/PlanTrajectory.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
 
 namespace Baxter
 {
@@ -34,6 +37,8 @@ private:
 
     ros::Publisher m_right_gripper_pub;
     ros::Publisher m_left_gripper_pub;
+
+    tf::StampedTransform m_base_to_camera_tf;
 
 };
 

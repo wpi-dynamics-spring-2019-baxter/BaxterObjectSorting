@@ -68,7 +68,7 @@
     <gravity>0 0 -9.81</gravity>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>2.92014 -0.802459 1.62724 0 0.399643 2.75619</pose>
+        <pose frame=''>0.316736 -0.019534 4.4943 1.56384 1.55687 1.57776</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -357,21 +357,6 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='fruit11'>
-      <pose frame=''>0.644047 0.086191 0 0 -0 0</pose>
-      <static>1</static>
-      <link name='body'>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>/home/pepperoniflame/Downloads/gazebo_models/model11.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <self_collide>0</self_collide>
-        <kinematic>0</kinematic>
-      </link>
-    </model>
     <light name='user_directional_light_0' type='directional'>
       <pose frame=''>-9.71911 2.85107 1 0 -0 0</pose>
       <diffuse>0.5 0.5 0.5 1</diffuse>
@@ -386,15 +371,25 @@
       <cast_shadows>1</cast_shadows>
     </light>
     <state world_name='default'>
-      <sim_time>183 805000000</sim_time>
-      <real_time>188 453166265</real_time>
-      <wall_time>1555713169 497438822</wall_time>
-      <iterations>183805</iterations>
-      <model name='fruit11'>
-        <pose frame=''>1.20665 -0.175762 1.09804 0 -0 0</pose>
+      <sim_time>1930 393000000</sim_time>
+      <real_time>225 491849384</real_time>
+      <wall_time>1556063559 528134071</wall_time>
+      <iterations>201764</iterations>
+      <model name='fruit22'>
+        <pose frame=''>0.937746 -0.123443 1.06016 0 0 -0.531488</pose>
         <scale>1 1 1</scale>
         <link name='body'>
-          <pose frame=''>1.20665 -0.175762 1.09804 0 -0 0</pose>
+          <pose frame=''>0.937746 -0.123443 1.06016 0 0 -0.531488</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='fruit5'>
+        <pose frame=''>0.875609 0.037474 1.02029 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='body'>
+          <pose frame=''>0.875609 0.037474 1.02029 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -421,10 +416,10 @@
         </link>
       </model>
       <model name='table'>
-        <pose frame=''>0.8 0 0 0 -0 1.5708</pose>
+        <pose frame=''>0.841318 0.121873 0 0 -0 1.5708</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>0.8 0 0 0 -0 1.5708</pose>
+          <pose frame=''>0.841318 0.121873 0 0 -0 1.5708</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -437,5 +432,35 @@
         <pose frame=''>-9.71911 2.85107 1 0 -0 0</pose>
       </light>
     </state>
+    <model name='fruit22'>
+      <pose frame=''>0.677692 -0.808628 0 0 -0 0</pose>
+      <static>1</static>
+      <link name='body'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>/home/pepperoniflame/Downloads/gazebo_models/model28.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='fruit5'>
+      <pose frame=''>0.078607 -1.30143 0 0 -0 0</pose>
+      <static>1</static>
+      <link name='body'>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>/home/pepperoniflame/Downloads/gazebo_models/model5.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
   </world>
 </sdf>
